@@ -21,11 +21,21 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    /**
+     * 1. 문제: 데이터 무결성 보장 미흡 및 성능 최적화 누락.
+     * 2. 원인: 클래스 또는 메서드 레벨에 @Transactional 선언이 없어 예외 발생 시 롤백되지 않음.
+     * 3. 개선안: 클래스 레벨에 @Transactional(readOnly = true)를 설정하고, CUD 작업 메서드에만 @Transactional 명시.
+     */
     public Product create(CreateProductRequest dto) {
         Product product = new Product(dto.getCategory(), dto.getName());
         return productRepository.save(product);
     }
 
+    /**
+     * 1. 문제: 예외 처리의 모호성 및 가독성 저하.
+     * 2. 원인: RuntimeException을 직접 사용하며, isPresent() 체크 후 get()을 호출하는 장황한 방식.
+     * 3. 개선안: orElseThrow를 사용하여 로직을 간소화하고, 구체적인 예외(Custom Exception 등)로 변경 권장.
+     */
     public Product getProductById(Long productId) {
         Optional<Product> productOptional = productRepository.findById(productId);
         if (!productOptional.isPresent()) {
@@ -34,6 +44,11 @@ public class ProductService {
         return productOptional.get();
     }
 
+    /**
+     * 1. 문제: 불필요한 DB 쓰기 작업 발생.
+     * 2. 원인: 영속성 컨텍스트의 변경 감지(Dirty Checking)를 활용하지 않고 명시적으로 save()를 호출함.
+     * 3. 개선안: @Transactional 안에서 엔티티 상태만 변경하여 트랜잭션 종료 시 자동 업데이트 유도.
+     */
     public Product update(UpdateProductRequest dto) {
         Product product = getProductById(dto.getId());
         product.setCategory(dto.getCategory());
@@ -48,6 +63,11 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    /**
+     * 1. 문제: 하드코딩된 정렬 기준 및 페이징 성능 관리 필요.
+     * 2. 원인: PageRequest 내부에 정렬 기준이 고정되어 있어 유연성 부족.
+     * 3. 개선안: PageRequest 생성 시 Sort 조건을 명시하고 서비스 레이어에서 정렬 전략 관리.
+     */
     public Page<Product> getListByCategory(GetProductListRequest dto) {
         PageRequest pageRequest = PageRequest.of(dto.getPage(), dto.getSize(), Sort.by(Sort.Direction.ASC, "category"));
         return productRepository.findAllByCategory(dto.getCategory(), pageRequest);
