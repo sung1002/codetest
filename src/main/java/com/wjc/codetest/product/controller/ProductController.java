@@ -37,7 +37,7 @@ public class ProductController {
     }
 
     /**
-     * 1. 문제: 메서드 경로에 행위(get, create, delete)를 포함함, 적할한 HTTP 응답코드가 아님
+     * 1. 문제: 메서드 경로에 행위(get, create, delete)를 포함함, 적합한 HTTP 응답코드가 아님
      * 2. 원인: RESTful API 설계 원칙에 위배함
      * 3. 개선안: ok(200)으로 응답해도 작동에는 문제가 없지만 정확하고 디테일한 응답을 위해서 created(201) 사용을 권장함.
      * - 매핑 개선안: @PostMapping
