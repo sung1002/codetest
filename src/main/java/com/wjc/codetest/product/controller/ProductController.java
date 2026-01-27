@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * 1. 문제: 비표준 API 경로 설계 및 자원 중심적이지 않은 매핑.
- * 2. 원인:RequestMapping에 기본 경로가 없고, 메서드 경로에 행위(get, create, delete)를 포함함.
+ * 2. 원인: RequestMapping에 기본 경로가 없고, 메서드 경로에 행위(get, create, delete)를 포함함.
  * 3. 개선안: RESTful API 설계 원칙에 따라 자원을 명사로 (@RequestMapping("/api/v1/products")), 행위를 HTTP Method(GET, POST, PUT, DELETE)로 표현.
  */
 @RestController
@@ -36,6 +36,12 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    /**
+     * 1. 문제: 메서드 경로에 행위(get, create, delete)를 포함함, 적할한 HTTP 응답코드가 아님
+     * 2. 원인: RESTful API 설계 원칙에 위배함
+     * 3. 개선안: ok(200)으로 응답해도 작동에는 문제가 없지만 정확하고 디테일한 응답을 위해서 created(201) 사용을 권장함.
+     * - 매핑 개선안: @PostMapping
+     */
     @PostMapping(value = "/create/product")
     public ResponseEntity<Product> createProduct(@RequestBody CreateProductRequest dto){
         Product product = productService.create(dto);
