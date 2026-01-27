@@ -32,8 +32,9 @@ public class ProductService {
     }
 
     /**
-     * 1. 문제: 예외 처리의 모호성 및 가독성 저하.
-     * 2. 원인: RuntimeException을 직접 사용하며, isPresent() 체크 후 get()을 호출하는 장황한 방식.
+     * 1. 문제: 예외 처리의 모호성 및 가독성 저하
+     * - 트랜잭션 동작안함
+     * 2. 원인: RuntimeException을 직접 사용하며, isPresent() 체크 후 get()을 호출하는 장황한 방식
      * 3. 개선안: orElseThrow를 사용하여 로직을 간소화하고, 구체적인 예외(Custom Exception 등)로 변경 권장.
      */
     public Product getProductById(Long productId) {
@@ -46,8 +47,11 @@ public class ProductService {
 
     /**
      * 1. 문제: 불필요한 DB 쓰기 작업 발생.
+     * - 트랜잭션 동작 안함
      * 2. 원인: 영속성 컨텍스트의 변경 감지(Dirty Checking)를 활용하지 않고 명시적으로 save()를 호출함.
+     * - Transaction Self-Invocation 문제
      * 3. 개선안: @Transactional 안에서 엔티티 상태만 변경하여 트랜잭션 종료 시 자동 업데이트 유도.
+     * - product를 가져올때 같은 내부 메서드 getProductById를 사용하는 것이 아닌 productRepository.findById로 변경.
      */
     public Product update(UpdateProductRequest dto) {
         Product product = getProductById(dto.getId());
@@ -58,6 +62,11 @@ public class ProductService {
 
     }
 
+    /**
+     * 1. 문제: 트랜잭션 동작 안함
+     * 2. 원인: Transaction Self-Invocation 문제
+     * 3. 개선안: product를 가져올때 같은 내부 메서드 getProductById를 사용하는 것이 아닌 productRepository.findById로 변경.
+     */
     public void deleteById(Long productId) {
         Product product = getProductById(productId);
         productRepository.delete(product);
